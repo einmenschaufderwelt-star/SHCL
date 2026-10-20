@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="de" data-theme="dark" style="color-scheme: dark;"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stryvex (SHCL) – Geometry Dash Demonlist</title>
+<style>
+:root{--bg:#f4f5f8;--card:#fff;--tx:#14161f;--mut:#6a7085;--ac:#7c3aed;--bd:#dfe2ea;--ok:#16a34a;--bad:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0f15;--card:#171923;--tx:#eceef6;--mut:#8b91a8;--ac:#a78bfa;--bd:#262a38}}
+:root[data-theme="dark"]{--bg:#0e0f15;--card:#171923;--tx:#eceef6;--mut:#8b91a8;--ac:#a78bfa;--bd:#262a38}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd)}
+.w{max-width:960px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;flex-wrap:wrap}
+.logo{font-weight:800;font-size:24px;letter-spacing:.5px}.logo span{color:var(--ac)}
+.logo small{display:block;font-size:12px;font-weight:500;color:var(--mut);letter-spacing:0}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+button,input,select{font:inherit;color:inherit}
+.tab{background:none;border:1px solid transparent;border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--mut)}
+.tab.on{color:var(--ac);border-color:var(--ac)}
+main{padding:20px 0 48px}
+.bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.bar input{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card)}
+.lv{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 16px;margin-bottom:8px}
+.rk{font-size:26px;font-weight:800;min-width:56px;text-align:center;color:var(--ac)}
+.in{flex:1;min-width:0}.nm{font-weight:700;font-size:18px;overflow-wrap:anywhere}
+.mt{color:var(--mut);font-size:14px}
+.pt{font-size:13px;color:var(--mut);text-align:right;white-space:nowrap}
+a.vid{color:var(--ac);text-decoration:none;font-size:14px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+.btn.s{background:none;color:var(--mut);border:1px solid var(--bd);padding:4px 9px}
+.btn.d{color:var(--bad);border-color:var(--bad);background:none;padding:4px 9px}
+.adm{background:var(--card);border:1px dashed var(--ac);border-radius:12px;padding:14px;margin-bottom:16px}
+.adm h3{margin:0 0 10px;font-size:16px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:10px}
+.g input{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)}
+.empty,.info{color:var(--mut);text-align:center;padding:28px 0}
+.acts{display:flex;gap:4px;flex-direction:column}
+footer{color:var(--mut);font-size:13px;text-align:center;padding:20px 16px 32px}
+.err{color:var(--bad);font-size:14px;margin:6px 0 0}
+.pill{display:inline-block;font-size:12px;border:1px solid var(--bd);border-radius:99px;padding:1px 9px;color:var(--mut);margin-left:6px}
+@media(max-width:560px){.lv{flex-wrap:wrap}.rk{min-width:44px;font-size:22px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script id="data" type="application/json">{"levels":[]}</script>
+<script>
+(function(){
+var state=JSON.parse(document.getElementById('data').textContent);
+var tab='main',q='',isOwner=false,art=null,busy=false,msg='';
+var root=document.getElementById('root');
+var T={main:['Main List','1–75'],ext:['Extended List','76–150'],leg:['Legacy','151+']};
+function pts(r){return r<=75?Math.round(150*Math.exp(-0.0239*(r-1))*100)/100:0}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function safeUrl(u){return /^https?:\/\//i.test(u)?u.replace(/"/g,'%22'):''}
+function inTab(r){return tab==='main'?r<=75:tab==='ext'?(r>75&&r<=150):r>150}
+function render(){
+var h='<header><div class="w top"><div class="logo">STRY<span>VEX</span><small>SHCL – Stryvex Hardest Challenge List</small></div><nav>';
+for(var k in T)h+='<button class="tab'+(k===tab?' on':'')+'" data-t="'+k+'">'+T[k][0]+'</button>';
+h+='</nav></div></header><main class="w">';
+if(isOwner){
+h+='<div class="adm"><h3>Owner-Bereich – Level hinzufügen</h3><div class="g">'+
+'<input id="n" placeholder="Levelname"><input id="c" placeholder="Creator"><input id="v" placeholder="Verifier">'+
+'<input id="u" placeholder="Video-Link (https://…)"><input id="i" placeholder="Level-ID (Pflicht)" inputmode="numeric">'+
+'<input id="p" type="number" min="1" placeholder="Platz (leer = ans Ende)"></div>'+
+'<button class="btn" id="add"'+(busy?' disabled':'')+'>Level hinzufügen</button>'+(msg?'<p class="err">'+esc(msg)+'</p>':'')+'</div>';
+}
+h+='<div class="bar"><input id="s" placeholder="Level, Creator oder Verifier suchen…" value="'+esc(q)+'"></div>';
+var n=0,L=state.levels;
+for(var i=0;i<L.length;i++){
+var r=i+1,l=L[i];if(!inTab(r))continue;
+var hay=(l.name+' '+l.creator+' '+l.verifier).toLowerCase();if(q&&hay.indexOf(q.toLowerCase())<0)continue;
+n++;var vu=safeUrl(l.video);
+h+='<div class="lv"><div class="rk">#'+r+'</div><div class="in"><div class="nm">'+esc(l.name)+(l.id?'<span class="pill">ID '+esc(l.id)+'</span>':'')+'</div>'+
+'<div class="mt">von '+esc(l.creator)+' · verifiziert von '+esc(l.verifier)+'</div>'+(vu?'<a class="vid" href="'+vu+'" target="_blank" rel="noopener noreferrer">▶ Verifikationsvideo</a>':'')+'</div>'+
+'<div class="pt">'+(pts(r)?pts(r).toFixed(2)+' Pkt.':'–')+'</div>'+
+(isOwner?'<div class="acts"><button class="btn s" data-up="'+i+'">↑</button><button class="btn s" data-dn="'+i+'">↓</button><button class="btn d" data-rm="'+i+'">Entfernen</button></div>':'')+'</div>';
+}
+if(!n)h+='<div class="empty">Keine Levels in diesem Bereich.</div>';
+h+='<div class="info">Plätze '+T[tab][1]+'. Punkte gibt es nur für die Main List.</div></main><footer>Stryvex (SHCL) · inspiriert von Pointercrate · Bearbeitung nur durch den Owner</footer>';
+root.innerHTML=h;bind();
+}
+function bind(){
+root.querySelectorAll('[data-t]').forEach(function(b){b.onclick=function(){tab=b.dataset.t;render()}});
+var s=document.getElementById('s');
+s.oninput=function(){q=s.value;var p=s.selectionStart;render();var s2=document.getElementById('s');s2.focus();s2.setSelectionRange(p,p)};
+if(!isOwner)return;
+document.getElementById('add').onclick=add;
+root.querySelectorAll('[data-rm]').forEach(function(b){b.onclick=function(){var i=+b.dataset.rm;state.levels.splice(i,1);save()}});
+root.querySelectorAll('[data-up]').forEach(function(b){b.onclick=function(){mv(+b.dataset.up,-1)}});
+root.querySelectorAll('[data-dn]').forEach(function(b){b.onclick=function(){mv(+b.dataset.dn,1)}});
+}
+function mv(i,d){var j=i+d,L=state.levels;if(j<0||j>=L.length)return;var t=L[i];L[i]=L[j];L[j]=t;save()}
+function add(){
+var g=function(x){return document.getElementById(x).value.trim()};
+var name=g('n');if(!name){msg='Bitte einen Levelnamen angeben.';render();return}
+if(!/^\d{1,10}$/.test(g('i'))){msg='Bitte eine gültige Level-ID angeben (nur Zahlen).';render();return}
+var v=g('u');if(v&&!safeUrl(v)){msg='Der Video-Link muss mit https:// beginnen.';render();return}
+var lv={name:name,creator:g('c')||'Unbekannt',verifier:g('v')||'Unbekannt',video:v,id:g('i')};
+var p=parseInt(g('p'),10);
+if(p>=1&&p<=state.levels.length)state.levels.splice(p-1,0,lv);else state.levels.push(lv);
+msg='';save();
+}
+function save(){
+if(!art){msg='Speichern nicht verfügbar.';render();return}
+busy=true;
+var c=document.documentElement.cloneNode(true);
+c.querySelector('#root').innerHTML='';
+c.querySelector('#data').textContent=JSON.stringify(state).replace(/</g,'\\u003c');
+art.publish('<!doctype html>\n'+c.outerHTML).catch(function(e){busy=false;msg='Speichern fehlgeschlagen ('+(e&&e.code||'Fehler')+').';render()});
+render();
+}
+render();
+if(window.claude&&claude.use){
+claude.use('user').then(function(u){try{isOwner=!!(u&&u.isOwner())}catch(e){}
+if(isOwner)return claude.use('artifact').then(function(a){art=a;render()});
+}).catch(function(){});
+}
+})();
+</script>
+
+
+</body></html>
